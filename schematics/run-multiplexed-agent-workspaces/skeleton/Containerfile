@@ -45,7 +45,7 @@ ARG HERDR_SHA256_ARM64=9c8db20fb7e7427b138d5367113f1621ffd319f2f65d6f009e2594029
 ARG IMAGE_VERSION=0.0.0
 ARG GIT_COMMIT=unknown
 ARG IMAGE_SOURCE=https://example.invalid/agent-host
-ARG TARGETARCH=
+ARG TARGETARCH
 
 # Installing needs root; running never does (R-1 of the base). The section ends
 # by switching back to the inherited account, so the image's runtime identity is
@@ -73,10 +73,11 @@ RUN set -eux; \
 # assets, checked into the build rather than fetched: a build that verified
 # against a freshly fetched checksum would pin nothing.
 RUN set -eux; \
-    case "${TARGETARCH}" in \
+    target_arch="${TARGETARCH:-}"; \
+    case "${target_arch}" in \
         amd64) herdr_url="https://github.com/herdrdev/herdr/releases/download/v${HERDR_VERSION}/herdr-linux-x86_64"; herdr_sha="${HERDR_SHA256_AMD64}" ;; \
         arm64) herdr_url="https://github.com/herdrdev/herdr/releases/download/v${HERDR_VERSION}/herdr-linux-aarch64"; herdr_sha="${HERDR_SHA256_ARM64}" ;; \
-        *) echo "ERROR: unsupported TARGETARCH '${TARGETARCH}'; this image is built for amd64 and arm64." >&2; exit 1 ;; \
+        *) echo "ERROR: unsupported TARGETARCH '${target_arch}'; this image is built for amd64 and arm64." >&2; exit 1 ;; \
     esac; \
     curl -fsSL "${herdr_url}" -o /usr/local/bin/herdr; \
     echo "${herdr_sha}  /usr/local/bin/herdr" | sha256sum -c -; \
